@@ -1,0 +1,38 @@
+version: '3'
+services:
+  app:
+    build:
+      dockerfile: docker/Dockerfile
+      context: .
+    image: bi-mijnluchtpunt
+    volumes:
+      # Mount local ./htdocs to container /var/www/html
+      - ./htdocs:/var/www/html:delegated
+      # Remove the vendor directory from the mount
+      # Only necessary for Mac because otherwise you'll experience bad performance
+      - bi-mijnluchtpunt-vendor:/var/www/html/vendor
+    ports:
+      - 8080:80
+    depends_on:
+      - mysql
+    # Necessary because artisan migrate can run while mysql is not ready yet.
+    restart: on-failure
+  mysql:
+    # On Linux connect from host with:
+    # mysql -hlocalhost -P3306 --protocol=tcp -ularavel -p
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    volumes:
+      - bi-mijnluchtpunt-mysql:/var/lib/mysql
+    environment:
+      # Put these same values also in .env file!
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: alsosecret
+volumes:
+  bi-mijnluchtpunt-mysql:
+    driver: 'local'
+  bi-mijnluchtpunt-vendor:
+    driver: 'local'
