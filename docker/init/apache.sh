@@ -22,10 +22,6 @@ chmod -R 777 /var/www/html/storage \
 if [ ! -f .env ]; then
   echo 'Copy .env.example to .env'
   cp -p .env.example .env
-  if [ ! `grep "^APP_KEY=base64:.*=$" .env` ]; then
-    echo 'Generate key'
-    php artisan key:generate
-  fi
 fi
 
 # Require other packages
@@ -35,6 +31,12 @@ fi
 
 echo 'Running composer install'
 composer install
+
+# Do this after composer install, because vendor must exist
+if [ ! `grep "^APP_KEY=base64:.*=$" .env` ]; then
+  echo 'Generate key'
+  php artisan key:generate
+fi
 
 # AdminLTE config
 if [ ! -L public/adminlte ]; then
